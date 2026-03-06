@@ -14,7 +14,9 @@ def _validar_y_crear_actividad(item: dict[str, Any]) -> ActividadTransporte:
         if campo not in item:
             raise ValorInvalidoException(f"Campo requerido ausente: {campo}")
     try:
-        tipo_vehiculo = TipoVehiculo(item["tipo_vehiculo"])
+        # Normalizar el tipo de vehículo para que coincida con el Enum (ej: "diesel" -> "Diesel")
+        tipo_raw = str(item.get("tipo_vehiculo", "")).capitalize()
+        tipo_vehiculo = TipoVehiculo(tipo_raw)
         distancia_km = float(item["distancia_km"])
         peso_toneladas = float(item["peso_toneladas"])
         factor_eficiencia = float(item["factor_eficiencia"])
