@@ -1,38 +1,81 @@
-# Byte-compiled / optimized / DLL files
+# ========== Python / Backend ==========
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyo
+*.pyd
+.Python
+*.so
 
 # Virtual environments
 venv/
 env/
 .venv/
-.env/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
+backend/.venv/
 
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
+coverage/
 *.cover
+.hypothesis/
+
+# Type / lint
+.mypy_cache/
+.ruff_cache/
 
 # Build / distribution
 dist/
 build/
 *.egg-info/
 *.egg
+*.manifest
 
-# Misc
-*.log
+# ========== Node / Frontend ==========
+node_modules/
+frontend/node_modules/
+.npm
+.yarn/
+.pnp.*
+*.tsbuildinfo
+
+# Next.js
+.next/
+frontend/.next/
+out/
+frontend/out/
+.turbo
+
+# ========== Environment ==========
+.env
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+!.env.example
+
+# ========== IDE / Editor ==========
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.cursor/
+
+# ========== OS ==========
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# ========== Logs / Misc ==========
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ========== Replit (opcional) ==========
+# .replit y replit.nix se versionan; datos locales de Replit si los hubiera:
+.replit.local
