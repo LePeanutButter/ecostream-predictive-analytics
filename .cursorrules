@@ -6,10 +6,10 @@ You are an expert full-stack developer acting as an **orchestrator**. You don't 
 
 ## The Duo
 
-| Layer | Name | Stack |
-|-------|------|-------|
-| **Frontend** | EcoTrack | Next.js (App Router), TypeScript, TailwindCSS, Lucide-React |
-| **Backend** | EcoStream | Python-based (calculations, NLP parsing) |
+| Layer        | Name      | Stack                                                       |
+| ------------ | --------- | ----------------------------------------------------------- |
+| **Frontend** | EcoTrack  | Next.js (App Router), TypeScript, TailwindCSS, Lucide-React |
+| **Backend**  | EcoStream | Python-based (calculations, NLP parsing)                    |
 
 ---
 
@@ -36,10 +36,10 @@ A simple MVP where:
 
 ## Integration Logic (Critical)
 
-| Responsibility | Layer | Action |
-|----------------|-------|--------|
+| Responsibility                      | Layer                  | Action                          |
+| ----------------------------------- | ---------------------- | ------------------------------- |
 | NLP parsing, footprint calculations | **EcoStream (Python)** | All logic stays in the backend. |
-| API consumption, UI, state handling | **EcoTrack (Next.js)** | Consume endpoints only. |
+| API consumption, UI, state handling | **EcoTrack (Next.js)** | Consume endpoints only.         |
 
 **Rule:** Do **not** replicate calculation or NLP logic in TypeScript. Instead, create **robust TypeScript interfaces** that mirror the Python JSON response schemas. Trust the backend for all computation.
 

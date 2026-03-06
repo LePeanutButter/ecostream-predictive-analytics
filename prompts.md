@@ -500,3 +500,400 @@ El desarrollo se organizó en cuatro fases principales.
 > - Analiza el riesgo de que el `request_data` en el Use Case no esté tipado (usa un `dict` genérico).
 > - Evalúa el impacto de que el repositorio sea "hardcoded" y si esto expone lógica de negocio sensible.
 > - Revisa si el manejo de excepciones genéricas (`Exception`) en el controlador podría filtrar trazas de error internas al cliente.
+
+## Sprint 3 - Desarrollo del Frontend MVP y Suite de Testing Integrada
+
+En el tercer sprint se centró en construir la interfaz de usuario mínima viable para registrar actividades y visualizar la huella de carbono, así como en generar la infraestructura completa de testing para garantizar la calidad del producto. Se mantuvo la coherencia con el microservicio de cálculo previamente desarrollado, evitando reimplementar la lógica del backend.
+
+El proceso se estructuró en tres fases:
+
+### Fase 1: Diseño del Frontend MVP
+
+**Técnica utilizada:** Role Prompting + Structured Prompting
+**Objetivo:** Crear un frontend minimalista que consuma la API existente de cálculo de huella de carbono, mostrando resultados claros y permitiendo la entrada de actividades en lenguaje natural.
+
+**Prompt utilizado:**
+
+> [Rol del modelo]: Eres un arquitecto de software senior especializado en desarrollo asistido por IA y Vibe Coding. Actúas como orquestador del sistema completo y priorizas experiencia de usuario, rapidez de iteración y claridad técnica.
+>
+> [Tarea]: Tu objetivo es ayudar a construir la capa de frontend de un MVP que permita a los usuarios registrar actividades diarias en lenguaje natural y visualizar su estimación de huella de carbono.
+>
+> IMPORTANTE (CRÍTICO):
+>
+> - TODO el backend ya existe y está implementado en Python.
+> - Los endpoints de cálculo de huella de carbono ya están disponibles.
+> - NO debes reimplementar lógica de cálculo ni procesamiento de lenguaje natural.
+> - El frontend únicamente debe consumir los endpoints existentes y mostrar los resultados.
+> - El objetivo es hacer que el sistema sea utilizable mediante una interfaz web simple.
+>
+> Debes:
+>
+> - Diseñar una interfaz mínima donde el usuario pueda escribir actividades en lenguaje natural.
+> - Conectar la interfaz con los endpoints existentes del backend.
+> - Proponer la arquitectura del frontend.
+> - Definir interfaces de datos que representen las respuestas JSON del backend en Python.
+> - Proponer prompts de alto nivel para que un agente de programación genere el código.
+> - Optimizar el flujo principal: texto del usuario → llamada API → visualización de resultado.
+>
+> [Formato]: Devuelve la respuesta en Markdown con las siguientes secciones:
+>
+> 1. Arquitectura del MVP
+> 2. Flujo completo del usuario (Input → API → Resultado)
+> 3. Estructura recomendada del proyecto frontend
+> 4. Interfaces de datos que representen las respuestas del backend Python
+> 5. Componentes principales de la interfaz
+> 6. Prompts recomendados para generar el frontend con un agente de programación
+> 7. Manejo de estados (loading, error, success)
+> 8. Estrategia de integración con el backend existente
+> 9. Recomendaciones para mantener el frontend desacoplado del backend
+>
+> [Ejemplo(s)]:
+> Ejemplo de interacción esperada del usuario:
+>
+> Usuario escribe:
+> "Hoy manejé 20km y comí carne."
+>
+> Flujo esperado:
+>
+> 1. El texto se envía al endpoint del backend.
+> 2. El backend procesa el lenguaje natural.
+> 3. El backend devuelve una estimación de CO2.
+> 4. El frontend muestra el resultado en una tarjeta visual clara.
+>
+> [Instrucciones extra]:
+>
+> - NO inventes lógica de cálculo.
+> - NO simules resultados.
+> - NO dupliques funcionalidad del backend Python.
+> - Asume que el backend es la fuente de verdad para todos los cálculos.
+> - Prioriza simplicidad y rapidez para un MVP funcional.
+> - Propón código modular y fácil de mantener.
+> - El flujo principal del producto siempre debe ser: actividad escrita → resultado de huella de carbono visible.
+
+### Fase 2: Generación del Scaffolding Fullstack en Replit
+
+**Técnica utilizada:** Role Prompting + Code Generation
+**Objetivo:** Generar la estructura completa del proyecto fullstack (Next.js + FastAPI) dentro de un monorepo optimizado para Replit, incluyendo scripts de orquestación.
+
+**Prompt utilizado:**
+[Rol del modelo]:
+Eres un arquitecto de software senior y programador fullstack experto en Python, Next.js, FastAPI y despliegue en Replit. Sabes diseñar monorepos fullstack optimizados para desarrollo y despliegue en Replit sin usar Docker.
+
+[Tarea]:
+
+> Tu objetivo es generar el scaffolding completo y el código necesario para una aplicación fullstack que se ejecutará completamente en Replit.
+>
+> La aplicación tendrá:
+>
+> - Frontend en Next.js
+> - Backend en Python usando FastAPI
+> - Ambos viviendo dentro del mismo repositorio (monorepo)
+> - Orquestación mediante `.replit` y `replit.nix`
+> - Un script de arranque que levante backend y frontend simultáneamente
+>
+> El frontend debe ser generado completamente basándose en el documento `frontend-mvp-architecture.md` previamente definido en el proyecto.
+>
+> Debes asumir que ese documento contiene:
+>
+> - estructura de carpetas
+> - páginas
+> - componentes
+> - hooks
+> - estado
+> - layout
+> - rutas
+>
+> y debes implementarlo fielmente.
+>
+> [Formato]:
+> Devuelve la respuesta en formato de **estructura de proyecto + archivos completos**.
+>
+> Usa este formato:
+>
+> 1. Estructura del proyecto (tree)
+> 2. Archivos de configuración
+> 3. Código completo de cada archivo
+>
+> Cada archivo debe mostrarse así:
+>
+> FILE: path/to/file.ext
+>
+> ```code
+> contenido completo
+> ```
+>
+> No omitas archivos importantes.
+>
+> [Arquitectura requerida]:
+>
+> El proyecto debe usar esta base:
+>
+> project-root/
+> │
+> ├── frontend/
+> │ ├── app/ # Next.js App Router
+> │ ├── components/
+> │ ├── hooks/
+> │ ├── services/
+> │ ├── styles/
+> │ ├── public/
+> │ ├── package.json
+> │ └── next.config.js
+> │
+> ├── backend/
+> │ ├── app/
+> │ │ ├── main.py
+> │ │ ├── routes/
+> │ │ ├── services/
+> │ │ ├── models/
+> │ │ └── schemas/
+> │ │
+> │ ├── requirements.txt
+> │ └── start_backend.sh
+> │
+> ├── scripts/
+> │ └── start.sh
+> │
+> ├── .replit
+> ├── replit.nix
+> └── README.md
+>
+> [Requisitos importantes]:
+>
+> 1. El backend FastAPI debe correr en puerto 8000.
+> 2. El frontend Next.js debe correr en puerto 3000.
+> 3. Next.js debe consumir la API Python mediante `/api`.
+> 4. Debe existir un endpoint de prueba `/api/health`.
+>
+> Ejemplo respuesta:
+>
+> GET /api/health →
+> { "status": "ok" }
+>
+> [Orquestación en Replit]:
+>
+> Debes crear:
+>
+> replit.nix
+> que instale:
+>
+> - nodejs
+> - python311
+> - pip
+>
+> El archivo `.replit` debe ejecutar:
+>
+> bash scripts/start.sh
+>
+> El script `start.sh` debe:
+>
+> 1. iniciar backend
+> 2. iniciar frontend
+> 3. mantener ambos procesos corriendo
+>
+> Ejemplo comportamiento esperado:
+>
+> start.sh
+>
+> - inicia FastAPI con uvicorn
+> - inicia Next.js con npm run dev
+>
+> [Frontend]:
+>
+> Debes implementar completamente el frontend usando:
+>
+> - Next.js App Router
+> - React
+> - fetch para consumir el backend
+> - estructura definida en `frontend-mvp-architecture.md`
+>
+> Incluye:
+>
+> - layout global
+> - página principal
+> - servicios de API
+> - componentes base
+> - manejo de estado si el documento lo define
+>
+> [Backend]:
+>
+> Implementar backend con:
+>
+> - FastAPI
+> - estructura modular
+> - router `/api`
+> - endpoint `/api/health`
+> - endpoint `/api/example`
+>
+> [Instrucciones extra]:
+>
+> Asegúrate de:
+>
+> - escribir código limpio y listo para ejecutar
+> - evitar pseudocódigo
+> - incluir todos los imports
+> - incluir dependencias necesarias
+> - que el proyecto funcione al presionar **Run en Replit**
+> - mantener una arquitectura escalable
+>
+> No expliques el código.
+> Solo devuelve la estructura del proyecto y los archivos completos.
+
+### Fase 3: Configuración de la Suite de Testing Fullstack
+
+**Técnica utilizada:** Role Prompting + Structured Prompting + Code Generation
+**Objetivo:** Implementar la infraestructura de pruebas para backend y frontend, asegurando que todos los endpoints y componentes se puedan testear fácilmente en Replit.
+
+**Prompt utilizado:**
+
+> [Rol del modelo]:
+> Eres un ingeniero senior de QA y testing automation experto en pruebas para aplicaciones fullstack con Python (FastAPI) y Next.js. Tienes amplia experiencia configurando suites de testing para monorepos y entornos de desarrollo en Replit.
+>
+> [Tarea]:
+> Tu objetivo es **generar y ajustar toda la infraestructura de testing del proyecto** para una aplicación fullstack que corre completamente en Replit.
+>
+> Debes crear los **tests necesarios para frontend y backend**, configurar las herramientas de testing, y asegurar que las pruebas puedan ejecutarse fácilmente en el entorno del proyecto.
+>
+> El proyecto ya tiene esta arquitectura base:
+>
+> project-root/
+> │
+> ├── frontend/
+> │ ├── app/
+> │ ├── components/
+> │ ├── hooks/
+> │ ├── services/
+> │ ├── styles/
+> │ └── tests/
+> │
+> ├── backend/
+> │ ├── app/
+> │ │ ├── routes/
+> │ │ ├── services/
+> │ │ ├── models/
+> │ │ └── schemas/
+> │ │
+> │ └── tests/
+> │
+> ├── scripts/
+> ├── .replit
+> ├── replit.nix
+> └── README.md
+>
+> Debes **analizar la arquitectura existente y generar la suite completa de pruebas** acorde a ella.
+>
+> [Formato]:
+> Devuelve la respuesta en formato de **estructura de proyecto + archivos completos**.
+>
+> Primero muestra la estructura de carpetas de testing actualizada.
+>
+> Luego muestra cada archivo usando el formato:
+>
+> FILE: path/to/file.ext
+>
+> ```code id="tests1"
+> contenido completo
+> ```
+>
+> No omitas archivos de configuración.
+>
+> [Testing Backend]:
+>
+> Configura testing del backend Python usando:
+>
+> - pytest
+> - httpx para testing de endpoints
+> - pytest-asyncio para endpoints async
+>
+> Debes crear:
+>
+> backend/tests/
+> ├── conftest.py
+> ├── test_health.py
+> ├── test_example_endpoint.py
+>
+> Los tests deben:
+>
+> - levantar la app de FastAPI en modo testing
+> - verificar endpoints HTTP
+> - validar status codes
+> - validar respuestas JSON
+>
+> Ejemplo esperado:
+>
+> GET /api/health →
+> status_code = 200
+> response.json() = {"status": "ok"}
+>
+> [Testing Frontend]:
+>
+> Configura testing del frontend Next.js usando:
+>
+> - Jest
+> - React Testing Library
+>
+> Debes crear:
+>
+> frontend/tests/
+> ├── setupTests.ts
+> ├── HomePage.test.tsx
+> ├── apiService.test.ts
+>
+> Los tests deben verificar:
+>
+> - renderizado de componentes
+> - comportamiento de hooks
+> - consumo de API
+> - manejo de estados básicos
+>
+> [Configuración requerida]:
+>
+> Debes incluir también los archivos de configuración necesarios:
+>
+> Frontend:
+>
+> - jest.config.js
+> - package.json scripts de testing
+>
+> Backend:
+>
+> - pytest.ini
+> - dependencias adicionales en requirements.txt
+>
+> Scripts esperados:
+>
+> Frontend:
+>
+> npm run test
+>
+> Backend:
+>
+> pytest
+>
+> [Integración con el proyecto]:
+>
+> Los tests deben funcionar con la arquitectura existente:
+>
+> - frontend consume backend
+> - backend expone rutas `/api/*`
+>
+> Debes usar **mocks cuando el frontend consuma APIs**.
+>
+> [Instrucciones extra]:
+>
+> Asegúrate de:
+>
+> - escribir tests funcionales y ejecutables
+> - incluir imports completos
+> - usar buenas prácticas de testing
+> - evitar pseudocódigo
+> - mantener una estructura clara y mantenible
+> - que los tests puedan ejecutarse dentro del entorno de Replit sin configuraciones externas
+>
+> No expliques el código.
+>
+> Devuelve únicamente:
+>
+> 1. estructura de tests
+> 2. archivos completos
+> 3. configuraciones necesarias.
