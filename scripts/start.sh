@@ -12,7 +12,7 @@ BACKEND_PID=$!
 # Frontend: port 5000 (required for Replit web preview)
 cd "$ROOT/frontend"
 npm install --legacy-peer-deps -q
-NEXT_PUBLIC_ECOSTREAM_URL=http://localhost:8000 npm run dev &
+NEXT_PUBLIC_REPLIT_DEV_DOMAIN=$REPLIT_DEV_DOMAIN NEXT_PUBLIC_ECOSTREAM_URL=http://localhost:8000 npm run dev &
 FRONTEND_PID=$!
 
 echo "Backend (FastAPI) running on http://localhost:8000 (PID $BACKEND_PID)"
