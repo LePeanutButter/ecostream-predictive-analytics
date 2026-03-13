@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 MAX_DISTANCIA_KM = 1_000_000
@@ -16,3 +18,15 @@ class ResultadoHuellaResponse(BaseModel):
     total_co2e_kg: float
     total_co2e_ton: float
     _links: dict
+
+
+class AnalisisActividadRequest(BaseModel):
+    message: str
+
+
+class AnalisisActividadResponse(BaseModel):
+    electricity_kwh: Optional[float]
+    vehicles: Optional[int]
+    fuel_liters: Optional[float]
+    activity: Optional[str]
+    notes: Optional[str]

@@ -897,3 +897,179 @@ Eres un arquitecto de software senior y programador fullstack experto en Python,
 > 1. estructura de tests
 > 2. archivos completos
 > 3. configuraciones necesarias.
+
+## Sprint 4
+
+### Fase 1: Transformar el formulario actual en chat
+
+[Rol del modelo]: Eres un ingeniero de software senior especializado en interfaces conversacionales y mejora de aplicaciones existentes.
+
+[Tarea]: Tu objetivo es transformar el formulario actual del proyecto en una interfaz tipo chat donde el usuario pueda describir sus actividades empresariales en lenguaje natural. Debes reutilizar la lógica existente que actualmente envía datos al backend y adaptarla para que funcione con mensajes de chat.
+
+[Formato]: Devuelve los cambios necesarios en el código existente indicando:
+
+- qué componentes modificar
+- qué nuevos componentes crear
+- cómo manejar el estado de los mensajes
+- cómo enviar el mensaje del usuario al endpoint existente del backend
+
+[Ejemplo(s)]: Usuario: "Hoy usamos 5 camionetas de reparto y gastamos 200kWh de electricidad"
+
+Sistema:
+"Analizando tu actividad..."
+
+Sistema:
+"Resultado estimado de emisiones: 48 kg de CO₂."
+
+[Instrucciones extra]:
+Asegúrate de:
+
+- reutilizar la estructura actual del proyecto
+- no eliminar la lógica existente del formulario sino adaptarla
+- mostrar los mensajes del usuario y del sistema en burbujas de chat
+- mostrar un indicador de "analizando actividad" mientras llega la respuesta
+
+### Fase 2: Agregar procesamiento de lenguaje natural
+
+[Rol del modelo]: Eres un especialista en procesamiento de lenguaje natural aplicado a aplicaciones empresariales.
+
+[Tarea]: Tu objetivo es analizar mensajes escritos por el usuario que describen actividades empresariales y extraer datos estructurados que puedan ser utilizados por la lógica existente del backend para calcular emisiones.
+
+[Formato]: Devuelve la respuesta siempre en formato JSON con los siguientes campos:
+
+- electricity_kwh
+- vehicles
+- fuel_liters
+- activity
+- notes
+
+[Ejemplo(s)]: Input: "Hoy usamos 3 camionetas y consumimos 150kWh de electricidad"
+
+Output:
+{
+"electricity_kwh": 150,
+"vehicles": 3,
+"fuel_liters": null,
+"activity": "delivery",
+"notes": "uso de vehículos y consumo eléctrico"
+}
+
+[Instrucciones extra]:
+Asegúrate de:
+
+- no inventar datos que el usuario no mencione
+- devolver null cuando un valor no esté presente
+- generar siempre un JSON válido
+- mantener el formato consistente para que el backend pueda procesarlo
+
+### Fase 3: Integrar el análisis de texto con el backend existente
+
+[Rol del modelo]: Eres un arquitecto de software especializado en integración de funcionalidades dentro de sistemas existentes.
+
+[Tarea]: Tu objetivo es integrar el resultado del análisis de lenguaje natural con la lógica actual del backend que calcula emisiones. Debes reutilizar los servicios o funciones que ya existen para realizar el cálculo.
+
+[Formato]: Devuelve:
+
+1. el flujo lógico completo
+2. las modificaciones necesarias en el endpoint que recibe el mensaje del chat
+3. cómo convertir el JSON extraído del mensaje en el formato que espera la lógica actual de cálculo
+
+[Ejemplo(s)]:
+
+Mensaje del usuario:
+"Hoy usamos 5 camionetas y 200kWh de electricidad"
+
+Datos extraídos:
+{
+"vehicles": 5,
+"electricity_kwh": 200
+}
+
+Resultado del sistema:
+"Con base en tu actividad, tu negocio generó aproximadamente 48 kg de CO₂."
+
+[Instrucciones extra]:
+Asegúrate de:
+
+- reutilizar la lógica actual del backend
+- no duplicar funcionalidades que ya existen
+- mantener el flujo simple y fácil de mantener
+
+### Fase 4: Generar la respuesta del chat al usuario
+
+[Rol del modelo]: Eres un asistente especializado en explicar resultados ambientales de forma clara para dueños de pequeños negocios.
+
+[Tarea]: Tu objetivo es generar una respuesta conversacional basada en los datos calculados por el sistema. Debes explicar de forma simple la huella de carbono estimada según las actividades descritas por el usuario.
+
+[Formato]: Devuelve la respuesta en texto corto dividido en:
+
+1. resumen de la actividad detectada
+2. resultado estimado de emisiones
+3. breve sugerencia de mejora ambiental
+
+[Ejemplo(s)]:
+
+Actividad detectada:
+5 vehículos de reparto y 200kWh de electricidad
+
+Respuesta:
+"Analicé tu actividad de hoy. El uso de 5 vehículos de reparto y 200kWh de electricidad generó aproximadamente 48 kg de CO₂.
+
+Sugerencia: podrías reducir tu huella optimizando rutas de entrega o reduciendo el consumo energético."
+
+[Instrucciones extra]:
+Asegúrate de:
+
+- mantener un tono amigable
+- explicar el resultado de forma sencilla
+- evitar respuestas demasiado largas
+
+### Fase 5: Mejorar la experiencia del chat
+
+[Rol del modelo]: Eres un diseñador de experiencia de usuario especializado en interfaces conversacionales.
+
+[Tarea]: Tu objetivo es mejorar la experiencia del chat existente dentro del proyecto para que la interacción sea clara y amigable para usuarios que quieren describir sus actividades empresariales.
+
+[Formato]: Devuelve una lista de mejoras divididas en:
+
+- mejoras visuales
+- mejoras en la interacción
+- mejoras en la presentación de resultados
+
+[Ejemplo(s)]: Mejora:
+
+Mostrar un indicador mientras el sistema analiza el mensaje.
+
+Mejora:
+Mostrar un pequeño resumen estructurado de la actividad detectada antes del resultado.
+
+[Instrucciones extra]:
+Asegúrate de:
+
+- mantener el diseño simple
+- facilitar la comprensión de los resultados
+- no alterar la arquitectura actual del proyecto
+
+## Fase 6: Debugging
+
+[Rol del modelo]: Eres un ingeniero de software especializado en debugging de aplicaciones que incluyen interfaces de chat y procesamiento de texto.
+
+[Tarea]: Tu objetivo es analizar un problema dentro de la aplicación y sugerir una solución utilizando el código existente del proyecto.
+
+[Formato]: Devuelve:
+
+1. descripción del problema
+2. causa probable
+3. solución recomendada
+4. ejemplo de corrección en el código
+
+[Ejemplo(s)]: Problema:
+
+El mensaje del usuario se envía correctamente pero la respuesta no aparece en el chat.
+
+[Instrucciones extra]:
+Asegúrate de:
+
+- revisar el flujo entre frontend y backend
+- considerar problemas de estado o manejo de respuestas
+- explicar la solución de forma clara

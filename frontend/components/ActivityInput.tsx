@@ -2,129 +2,103 @@
 
 import { useState } from "react";
 import { Leaf } from "lucide-react";
-import { calcularHuella } from "@/services/api";
-import type { ActividadRequest, ResultadoHuellaResponse } from "@/types/ecostream";
-import { ApiError } from "@/services/api";
-import { ResultCard } from "./ResultCard";
+import {
+  ApiError,
+  calcularHuellaDesdeTexto,
+  type ChatResultadoResponse,
+} from "@/services/api";
+import type { ResultadoHuellaResponse } from "@/types/ecostream";
 import { LoadingState } from "./LoadingState";
 import { ErrorMessage } from "./ErrorMessage";
+import { ResultCard } from "./ResultCard";
+import { ChatMessageList, type ChatMessage } from "./ChatMessageList";
+import { ChatInput } from "./ChatInput";
 
 type ApiState = "idle" | "loading" | "success" | "error";
-
-const TIPOS_VEHICULO: { value: ActividadRequest["tipo_vehiculo"]; label: string }[] = [
-  { value: "Diesel", label: "Diesel" },
-  { value: "Electrico", label: "Eléctrico" },
-  { value: "Hibrido", label: "Híbrido" },
-];
 
 export function ActivityInput() {
   const [state, setState] = useState<ApiState>("idle");
   const [result, setResult] = useState<ResultadoHuellaResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [form, setForm] = useState<ActividadRequest>({
-    tipo_vehiculo: "Diesel",
-    distancia_km: 0,
-    peso_toneladas: 1,
-    factor_eficiencia: 1,
-  });
+  const [inputValue, setInputValue] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: "welcome",
+      role: "system",
+      text: "Describe tu actividad de transporte (por ejemplo: 'Hoy usamos 5 camionetas de reparto y recorrimos 200 km con 10 toneladas de carga').",
+    },
+  ]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setState("loading");
+  async function handleSendMessage(text: string) {
+    const trimmed = text.trim();
+    if (!trimmed || state === "loading") return;
+
+    setInputValue("");
     setError(null);
     setResult(null);
+    setState("loading");
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: "user",
+      text: trimmed,
+    };
+
+    const loadingMessage: ChatMessage = {
+      id: "loading",
+      role: "system",
+      text: "Analizando tu actividad...",
+    };
+
+    setMessages((prev) => [...prev, userMessage, loadingMessage]);
+
     try {
-      const data = await calcularHuella(form);
+      const data: ChatResultadoResponse = await calcularHuellaDesdeTexto(trimmed);
       setResult(data);
       setState("success");
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === "loading" ? { ...m, text: data.result_text } : m,
+        ),
+      );
     } catch (e) {
-      const msg = e instanceof ApiError ? e.detail ?? e.message : "Error al calcular huella";
+      const msg =
+        e instanceof ApiError ? e.detail ?? e.message : "Error al calcular huella";
       setError(msg);
       setState("error");
+
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === "loading"
+            ? { ...m, text: `Ocurrió un error al analizar la actividad: ${msg}` }
+            : m,
+        ),
+      );
     }
   }
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="tipo_vehiculo" className="mb-1 block text-sm font-medium text-stone-700">
-              Tipo de vehículo
-            </label>
-            <select
-              id="tipo_vehiculo"
-              value={form.tipo_vehiculo}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, tipo_vehiculo: e.target.value as ActividadRequest["tipo_vehiculo"] }))
-              }
-              className="w-full rounded-lg border border-stone-300 px-3 py-2 text-stone-800 focus:border-eco-green focus:outline-none focus:ring-1 focus:ring-eco-green"
-            >
-              {TIPOS_VEHICULO.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="distancia_km" className="mb-1 block text-sm font-medium text-stone-700">
-              Distancia (km)
-            </label>
-            <input
-              id="distancia_km"
-              type="number"
-              min={0}
-              step={0.1}
-              value={form.distancia_km || ""}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, distancia_km: parseFloat(e.target.value) || 0 }))
-              }
-              className="w-full rounded-lg border border-stone-300 px-3 py-2 text-stone-800 focus:border-eco-green focus:outline-none focus:ring-1 focus:ring-eco-green"
-            />
-          </div>
-          <div>
-            <label htmlFor="peso_toneladas" className="mb-1 block text-sm font-medium text-stone-700">
-              Peso (toneladas)
-            </label>
-            <input
-              id="peso_toneladas"
-              type="number"
-              min={0.01}
-              step={0.1}
-              value={form.peso_toneladas || ""}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, peso_toneladas: parseFloat(e.target.value) || 1 }))
-              }
-              className="w-full rounded-lg border border-stone-300 px-3 py-2 text-stone-800 focus:border-eco-green focus:outline-none focus:ring-1 focus:ring-eco-green"
-            />
-          </div>
-          <div>
-            <label htmlFor="factor_eficiencia" className="mb-1 block text-sm font-medium text-stone-700">
-              Factor de eficiencia
-            </label>
-            <input
-              id="factor_eficiencia"
-              type="number"
-              min={0.01}
-              step={0.01}
-              value={form.factor_eficiencia || ""}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, factor_eficiencia: parseFloat(e.target.value) || 1 }))
-              }
-              className="w-full rounded-lg border border-stone-300 px-3 py-2 text-stone-800 focus:border-eco-green focus:outline-none focus:ring-1 focus:ring-eco-green"
-            />
-          </div>
+      <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+        <div className="mb-4 flex items-center gap-2">
+          <Leaf className="h-5 w-5 text-eco-green" />
+          <h2 className="text-lg font-semibold text-eco-dark">
+            Describe tu actividad de transporte
+          </h2>
         </div>
-        <button
-          type="submit"
+
+        <div className="mb-4 h-64 space-y-3 overflow-y-auto rounded-lg border border-stone-100 bg-stone-50 p-3">
+          <ChatMessageList messages={messages} />
+        </div>
+
+        <ChatInput
+          value={inputValue}
+          onChange={setInputValue}
+          onSend={handleSendMessage}
           disabled={state === "loading"}
-          className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-eco-green px-4 py-3 font-medium text-white transition hover:bg-eco-dark disabled:opacity-50"
-        >
-          <Leaf className="h-5 w-5" />
-          Calcular huella
-        </button>
-      </form>
+        />
+      </div>
 
       {state === "loading" && <LoadingState />}
       {state === "error" && error && <ErrorMessage message={error} />}

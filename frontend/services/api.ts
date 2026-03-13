@@ -35,6 +35,31 @@ export async function calcularHuella(
   return res.json();
 }
 
+export interface AnalisisActividadResponse {
+  electricity_kwh: number | null;
+  vehicles: number | null;
+  fuel_liters: number | null;
+  activity: string | null;
+  notes: string | null;
+}
+
+export interface ChatResultadoResponse extends ResultadoHuellaResponse {
+  parsed_activity: AnalisisActividadResponse;
+  result_text: string;
+}
+
+export async function calcularHuellaDesdeTexto(
+  message: string
+): Promise<ChatResultadoResponse> {
+  const res = await fetch(`${API_BASE_URL}/api/chat-resultado-huella`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message }),
+  });
+  if (!res.ok) throw await parseApiError(res);
+  return res.json();
+}
+
 export async function checkHealth(): Promise<{ status: string }> {
   const res = await fetch(`${API_BASE_URL}/api/health`);
   if (!res.ok) throw await parseApiError(res);

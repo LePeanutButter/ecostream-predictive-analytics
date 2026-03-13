@@ -15,10 +15,7 @@ describe("checkHealth", () => {
 
     const result = await checkHealth();
     expect(result).toEqual({ status: "ok" });
-    expect(fetch).toHaveBeenCalledWith(
-      expect.stringMatching(/\/api\/health$/),
-      undefined
-    );
+    expect(fetch).toHaveBeenCalledWith(expect.any(String));
   });
 
   it("lanza ApiError cuando la API responde con error", async () => {

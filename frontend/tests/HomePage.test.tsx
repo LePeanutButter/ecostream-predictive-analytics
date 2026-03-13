@@ -14,16 +14,15 @@ describe("HomePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("renderiza el botón de calcular huella", () => {
+  it("renderiza el botón de enviar del chat", () => {
     render(<HomePage />);
-    expect(screen.getByRole("button", { name: /Calcular huella/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Enviar/i })).toBeInTheDocument();
   });
 
-  it("renderiza el formulario con campos de actividad", () => {
+  it("renderiza el input de texto del chat", () => {
     render(<HomePage />);
-    expect(screen.getByLabelText(/Tipo de vehículo/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Distancia \(km\)/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Peso \(toneladas\)/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Factor de eficiencia/i)).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/Describe aquí tu actividad de transporte.../i)
+    ).toBeInTheDocument();
   });
 });
