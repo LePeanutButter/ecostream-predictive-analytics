@@ -75,17 +75,18 @@ A simple MVP where:
 
 Define interfaces that match EcoStream's JSON responses exactly. Example pattern:
 
-```typescript
+```ts
 // types/ecostream.ts — mirrors Python response
 export interface FootprintResponse {
   activity: string;
   co2_kg: number;
   unit?: string;
 }
-
 export interface EcoStreamError {
   detail: string;
 }
+```
+
 ```
 
 When the backend schema changes, update these interfaces first — never guess response shapes.

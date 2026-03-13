@@ -1,7 +1,7 @@
-# EcoTrack — Entrega Sprint 3
+# EcoTrack — Entrega Sprint 4
 
 **Proyecto:** EcoStream Predictive Analytics / EcoTrack  
-**Sprint:** 3 — Desarrollo del Frontend MVP y Suite de Testing Integrada  
+**Sprint:** 4 — Interpretación de lenguaje natural y caja de texto tipo chat  
 **Metodología:** Vibe Coding con Cursor y Replit
 
 ---
@@ -12,32 +12,47 @@
 | ---------------------- | -------------------------------------------------------------------- |
 | **Estudiante**         | Santiago Botero Garcia                                               |
 | **Curso / Asignatura** | SWNT                                                                 |
-| **Fecha de entrega**   | Marzo 05, 2026                                                       |
+| **Fecha de entrega**   | Marzo 12, 2026                                                       |
 | **Repositorio / Repl** | https://github.com/LePeanutButter/ecostream-predictive-analytics.git |
 
 ---
 
 ## Índice y navegación
 
-1. [Escenario del prototipo](#escenario-del-prototipo)
+1. [Escenario del prototipo en el Sprint 4](#escenario-del-prototipo-en-el-sprint-4)
 2. [Instrucciones paso a paso](#instrucciones-paso-a-paso)
 3. [Entregables esperados](#entregables-esperados)
 4. [Rúbrica de evaluación](#rúbrica-de-evaluación)
-5. [Bitácora de prompts — Sprint 3](#bitácora-de-prompts--sprint-3)
+5. [Bitácora de prompts — Sprint 4](#bitácora-de-prompts--sprint-4)
 6. [Contenido del archivo .cursorrules](#contenido-del-archivo-cursorrules)
 7. [Capturas de pantalla](#capturas-de-pantalla)
 
 ---
 
-## Escenario del prototipo
+## Escenario del prototipo en el Sprint 4
 
-**EcoTrack** es la interfaz de usuario (frontend) de un MVP que permite a los usuarios **registrar actividades** (por ejemplo, de transporte) y **visualizar la estimación de huella de carbono** asociada. El backend **EcoStream** (Python, FastAPI) ya existía antes del Sprint 3 y se encarga de todo el cálculo y la lógica de negocio.
+**EcoTrack** es la interfaz de usuario (frontend) de un MVP que permite a los usuarios **describir en lenguaje natural sus actividades de transporte** y **visualizar la estimación de huella de carbono** asociada.  
+El backend **EcoStream** (Python, FastAPI) ya existía con toda la lógica de negocio de cálculo.
 
-- **Objetivo del prototipo:** Hacer utilizable el sistema mediante una interfaz web mínima: el usuario introduce datos (formulario o, en una extensión futura, lenguaje natural) y ve el resultado de CO₂e en una tarjeta clara.
-- **Stack:** Frontend en Next.js (App Router, TypeScript, TailwindCSS, Lucide-React); Backend en FastAPI; orquestación y despliegue en Replit mediante `.replit` y `replit.nix`.
-- **Flujo principal:** Entrada de actividad → llamada a la API (`/api/resultado-huella`) → visualización del resultado (kg CO₂e, ton CO₂e).
+- **Objetivo del Sprint 4:**  
+  Transformar el flujo de entrada de datos desde un formulario clásico hacia una **experiencia tipo chat**, donde el usuario escribe mensajes como:
 
-El desarrollo del Sprint 3 se centró en: (1) diseño y documentación del frontend MVP, (2) scaffolding fullstack en Replit y (3) suite de testing integrada (pytest en backend, Jest + React Testing Library en frontend).
+  > "Hoy usamos 5 camionetas y 200 kWh de electricidad"
+
+  y el sistema:
+  1. Analiza el texto con un modelo de lenguaje.
+  2. Extrae datos estructurados (vehículos, electricidad, combustible, etc.).
+  3. Los convierte al formato `ActividadRequest` esperado por la lógica actual.
+  4. Reutiliza el endpoint de cálculo para devolver un mensaje tipo:  
+     **"Con base en tu actividad, tu negocio generó aproximadamente XX kg de CO₂."**
+
+- **Stack:**
+  - Frontend: Next.js (App Router), TypeScript, TailwindCSS, Lucide-React.
+  - Backend: FastAPI (servicios de cálculo + nueva capa de orquestación AI).
+  - Orquestación y despliegue: Replit (`.replit`, `replit.nix`) y tooling existente del monorepo.
+
+- **Flujo principal actualizado:**  
+  Mensaje en lenguaje natural en la caja de texto → endpoint AI `/api/chat-resultado-huella` → análisis NLP + conversión a `ActividadRequest` → uso de `CalcularHuellaUseCase` → respuesta en chat + tarjeta de resultado (`ResultCard`).
 
 ---
 
@@ -45,270 +60,156 @@ El desarrollo del Sprint 3 se centró en: (1) diseño y documentación del front
 
 ### 1. Preparación del entorno
 
-- **Cursor:** Instalar Cursor, abrir el repositorio del proyecto y asegurar que el asistente AI tenga contexto del monorepo (frontend + backend). Opcional: configurar reglas de proyecto en `.cursorrules` para alinear respuestas con Vibe Coding y la arquitectura EcoTrack/EcoStream.
-- **Replit:** Clonar o importar el repositorio en un Repl. El archivo `.replit` debe ejecutar `bash scripts/start.sh`, que levanta el backend (puerto 8000) y el frontend (puerto 3000). Verificar que `replit.nix` incluya `nodejs`, `python311` y `pip`.
+- **Cursor:**
+  - Abrir el repositorio y asegurarse de que el asistente AI tenga contexto del monorepo (`frontend/` + `backend/`).
+  - Mantener las reglas de proyecto en `.cursorrules` para alinear el comportamiento del asistente con la arquitectura EcoTrack/EcoStream y el nuevo flujo de chat.
 
-### 2. Desarrollo inicial (Vibe Coding)
+- **Replit / entorno local:**
+  - Backend en puerto `8000` (FastAPI).
+  - Frontend en puerto `3000` (Next.js).
+  - El script `scripts/start.sh` sigue levantando backend y frontend como en sprints anteriores.
 
-- Priorizar **velocidad y flujo**: pedir al asistente bloques de código completos y listos para pegar, no pseudocódigo.
-- Ante errores de build, runtime o API: solicitar que el modelo **proponga la corrección** de forma automática.
-- Mantener el frontend **desacoplado** del backend: solo consumo de API y definición de interfaces TypeScript que reflejen los JSON del backend; no reimplementar cálculos en el frontend.
-- Seguir la estructura definida en `docs/frontend-mvp-architecture.md` (páginas, componentes, servicios, estados).
+### 2. Implementación del flujo de lenguaje natural (Sprint 4)
 
-### 3. Documentación del proceso
+#### 2.1 Backend — capa de análisis de lenguaje natural
 
-- Registrar en una **bitácora de prompts** (por ejemplo en `prompts.md`) los prompts utilizados en cada fase del Sprint 3, con rol, tarea, formato y ejemplos.
-- Mantener el **Vibe Report** (documento opcional que describe el proceso de Vibe Coding, decisiones y resultados) para la entrega.
-- Incluir en el README la bitácora del Sprint 3 y el contenido completo de `.cursorrules` para revisión.
+- **Esquemas Pydantic nuevos** (`backend/app/schemas/huella.py`):
 
----
+  ```python
+  class AnalisisActividadRequest(BaseModel):
+      message: str
 
-## Rúbrica de evaluación
+  class AnalisisActividadResponse(BaseModel):
+      electricity_kwh: Optional[float]
+      vehicles: Optional[int]
+      fuel_liters: Optional[float]
+      activity: Optional[str]
+      notes: Optional[str]
+  ```
 
-Criterios típicos (adaptar según indicaciones del profesor):
+## Bitacora de prompts - Sprint 4
 
-1. **Completitud de la entrega:** Repositorio/Repl accesible, `.cursorrules`, bitácora de prompts del Sprint 3 y lugar para capturas.
-2. **Funcionalidad del prototipo:** La aplicación levanta en Replit (o local), el usuario puede enviar una actividad y ver el resultado de huella de carbono.
-3. **Calidad del código y arquitectura:** Estructura clara frontend/backend, uso de tipos/interfaces, manejo de estados (loading, error, success).
-4. **Testing:** Tests de backend (pytest) y frontend (Jest/RTL) ejecutables y alineados con la arquitectura.
-5. **Documentación:** README completo, instrucciones reproducibles y coherencia con la metodología Vibe Coding.
+En el cuarto sprint se añadió una capa de interpretación de lenguaje natural y una interfaz tipo chat sobre la lógica de huella de carbono que ya existía.
 
----
+El foco estuvo en: extraer datos estructurados desde texto libre, mapearlos al formato ya usado por el backend y actualizar la experiencia de usuario para que gire en torno a una conversación.
 
-## Bitácora de prompts — Sprint 3
+El proceso se estructuró en tres fases.
 
-En el tercer sprint se construyó la interfaz de usuario mínima viable para registrar actividades y visualizar la huella de carbono, y se generó la infraestructura de testing. Se mantuvo coherencia con el microservicio de cálculo existente, sin reimplementar lógica en el frontend.
+### Fase 1: Diseño de la interpretación de lenguaje natural
 
-El proceso se estructuró en **tres fases**.
-
----
-
-### Fase 1: Diseño del Frontend MVP
-
-**Técnica utilizada:** Role Prompting + Structured Prompting  
-**Objetivo:** Definir un frontend minimalista que consuma la API existente de cálculo de huella de carbono, muestre resultados claros y permita la entrada de actividades (y en el futuro lenguaje natural).
+**Técnica utilizada:** Role Prompting + Structured Prompting
+**Objetivo:** Definir cómo el modelo de lenguaje debe extraer datos estructurados de mensajes escritos en lenguaje natural por el usuario.
 
 **Prompt utilizado:**
 
-> [Rol del modelo]: Eres un arquitecto de software senior especializado en desarrollo asistido por IA y Vibe Coding. Actúas como orquestador del sistema completo y priorizas experiencia de usuario, rapidez de iteración y claridad técnica.
+> [Rol del modelo]: Eres un ingeniero de software senior especializado en interfaces conversacionales y mejora de aplicaciones existentes.
 >
-> [Tarea]: Tu objetivo es ayudar a construir la capa de frontend de un MVP que permita a los usuarios registrar actividades diarias en lenguaje natural y visualizar su estimación de huella de carbono.
+> [Tarea]: Tu objetivo es transformar el formulario actual del proyecto en una interfaz tipo chat donde el usuario pueda describir sus actividades empresariales en lenguaje natural. Debes reutilizar la lógica existente que actualmente envía datos al backend y adaptarla para que funcione con mensajes de chat.
 >
-> IMPORTANTE (CRÍTICO):
+> [Formato]: Devuelve los cambios necesarios en el código existente indicando:
 >
-> - TODO el backend ya existe y está implementado en Python.
-> - Los endpoints de cálculo de huella de carbono ya están disponibles.
-> - NO debes reimplementar lógica de cálculo ni procesamiento de lenguaje natural.
-> - El frontend únicamente debe consumir los endpoints existentes y mostrar los resultados.
-> - El objetivo es hacer que el sistema sea utilizable mediante una interfaz web simple.
+> - qué componentes modificar
+> - qué nuevos componentes crear
+> - cómo manejar el estado de los mensajes
+> - cómo enviar el mensaje del usuario al endpoint existente del backend
 >
-> Debes:
+> [Ejemplo(s)]: Usuario: "Hoy usamos 5 camionetas de reparto y gastamos 200kWh de electricidad"
 >
-> - Diseñar una interfaz mínima donde el usuario pueda escribir actividades en lenguaje natural.
-> - Conectar la interfaz con los endpoints existentes del backend.
-> - Proponer la arquitectura del frontend.
-> - Definir interfaces de datos que representen las respuestas JSON del backend en Python.
-> - Proponer prompts de alto nivel para que un agente de programación genere el código.
-> - Optimizar el flujo principal: texto del usuario → llamada API → visualización de resultado.
+> Sistema:
+> "Analizando tu actividad..."
 >
-> [Formato]: Devuelve la respuesta en Markdown con las siguientes secciones:
->
-> 1. Arquitectura del MVP
-> 2. Flujo completo del usuario (Input → API → Resultado)
-> 3. Estructura recomendada del proyecto frontend
-> 4. Interfaces de datos que representen las respuestas del backend Python
-> 5. Componentes principales de la interfaz
-> 6. Prompts recomendados para generar el frontend con un agente de programación
-> 7. Manejo de estados (loading, error, success)
-> 8. Estrategia de integración con el backend existente
-> 9. Recomendaciones para mantener el frontend desacoplado del backend
->
-> [Ejemplo(s)]:
-> Ejemplo de interacción esperada del usuario:
->
-> Usuario escribe:
-> "Hoy manejé 20km y comí carne."
->
-> Flujo esperado:
->
-> 1. El texto se envía al endpoint del backend.
-> 2. El backend procesa el lenguaje natural.
-> 3. El backend devuelve una estimación de CO2.
-> 4. El frontend muestra el resultado en una tarjeta visual clara.
+> Sistema:
+> "Resultado estimado de emisiones: 48 kg de CO₂."
 >
 > [Instrucciones extra]:
+> Asegúrate de:
 >
-> - NO inventes lógica de cálculo.
-> - NO simules resultados.
-> - NO dupliques funcionalidad del backend Python.
-> - Asume que el backend es la fuente de verdad para todos los cálculos.
-> - Prioriza simplicidad y rapidez para un MVP funcional.
-> - Propón código modular y fácil de mantener.
-> - El flujo principal del producto siempre debe ser: actividad escrita → resultado de huella de carbono visible.
+> - reutilizar la estructura actual del proyecto
+> - no eliminar la lógica existente del formulario sino adaptarla
+> - mostrar los mensajes del usuario y del sistema en burbujas de chat
+> - mostrar un indicador de "analizando actividad" mientras llega la respuesta
 
----
+### Fase 2: Integración del JSON extraído con la lógica actual
 
-### Fase 2: Generación del Scaffolding Fullstack en Replit
-
-**Técnica utilizada:** Role Prompting + Code Generation  
-**Objetivo:** Generar la estructura completa del proyecto fullstack (Next.js + FastAPI) en un monorepo optimizado para Replit, con scripts de orquestación.
+**Técnica utilizada:** Role Prompting + Code Generation
+**Objetivo:** Integrar el resultado del análisis de lenguaje natural con la lógica actual del backend que calcula emisiones, sin duplicar funcionalidad.
 
 **Prompt utilizado:**
 
-> [Rol del modelo]:
-> Eres un arquitecto de software senior y programador fullstack experto en Python, Next.js, FastAPI y despliegue en Replit. Sabes diseñar monorepos fullstack optimizados para desarrollo y despliegue en Replit sin usar Docker.
+> [Rol del modelo]: Eres un especialista en procesamiento de lenguaje natural aplicado a aplicaciones empresariales.
 >
-> [Tarea]:
+> [Tarea]: Tu objetivo es analizar mensajes escritos por el usuario que describen actividades empresariales y extraer datos estructurados que puedan ser utilizados por la lógica existente del backend para calcular emisiones.
 >
-> Tu objetivo es generar el scaffolding completo y el código necesario para una aplicación fullstack que se ejecutará completamente en Replit.
+> [Formato]: Devuelve la respuesta siempre en formato JSON con los siguientes campos:
 >
-> La aplicación tendrá:
+> - electricity_kwh
+> - vehicles
+> - fuel_liters
+> - activity
+> - notes
 >
-> - Frontend en Next.js
-> - Backend en Python usando FastAPI
-> - Ambos viviendo dentro del mismo repositorio (monorepo)
-> - Orquestación mediante `.replit` y `replit.nix`
-> - Un script de arranque que levante backend y frontend simultáneamente
+> [Ejemplo(s)]: Input: "Hoy usamos 3 camionetas y consumimos 150kWh de electricidad"
 >
-> El frontend debe ser generado completamente basándose en el documento `frontend-mvp-architecture.md` previamente definido en el proyecto.
+> Output:
+> {
+> "electricity_kwh": 150,
+> "vehicles": 3,
+> "fuel_liters": null,
+> "activity": "delivery",
+> "notes": "uso de vehículos y consumo eléctrico"
+> }
 >
-> Debes asumir que ese documento contiene:
+> [Instrucciones extra]:
+> Asegúrate de:
 >
-> - estructura de carpetas
-> - páginas
-> - componentes
-> - hooks
-> - estado
-> - layout
-> - rutas
->
-> y debes implementarlo fielmente.
->
-> [Formato]:
-> Devuelve la respuesta en formato de **estructura de proyecto + archivos completos**.
->
-> Usa este formato:
->
-> 1. Estructura del proyecto (tree)
-> 2. Archivos de configuración
-> 3. Código completo de cada archivo
->
-> Cada archivo debe mostrarse así:
->
-> FILE: path/to/file.ext
->
-> ```code
-> contenido completo
-> ```
->
-> No omitas archivos importantes.
->
-> [Arquitectura requerida]:
->
-> El proyecto debe usar esta base:
->
-> project-root/
-> │
-> ├── frontend/
-> │ ├── app/ # Next.js App Router
-> │ ├── components/
-> │ ├── hooks/
-> │ ├── services/
-> │ ├── styles/
-> │ ├── public/
-> │ ├── package.json
-> │ └── next.config.js
-> │
-> ├── backend/
-> │ ├── app/
-> │ │ ├── main.py
-> │ │ ├── routes/
-> │ │ ├── services/
-> │ │ ├── models/
-> │ │ └── schemas/
-> │ ├── requirements.txt
-> │ └── start_backend.sh
-> │
-> ├── scripts/
-> │ └── start.sh
-> │
-> ├── .replit
-> ├── replit.nix
-> └── README.md
->
-> [Requisitos importantes]:
->
-> 1. El backend FastAPI debe correr en puerto 8000.
-> 2. El frontend Next.js debe correr en puerto 3000.
-> 3. Next.js debe consumir la API Python mediante `/api`.
-> 4. Debe existir un endpoint de prueba `/api/health`.
->
-> Ejemplo respuesta:
->
-> GET /api/health →
-> { "status": "ok" }
->
-> [Orquestación en Replit]:
->
-> Debes crear replit.nix que instale: nodejs, python311, pip.
->
-> El archivo `.replit` debe ejecutar: bash scripts/start.sh
->
-> El script `start.sh` debe: (1) iniciar backend, (2) iniciar frontend, (3) mantener ambos procesos corriendo.
->
-> [Frontend]: Next.js App Router, React, fetch para consumir el backend, estructura definida en frontend-mvp-architecture.md (layout, página principal, servicios de API, componentes base, manejo de estado).
->
-> [Backend]: FastAPI, estructura modular, router `/api`, endpoint `/api/health`, endpoint `/api/example`.
->
-> [Instrucciones extra]: Código limpio y listo para ejecutar, sin pseudocódigo, con todos los imports y dependencias; que el proyecto funcione al presionar Run en Replit; arquitectura escalable.
+> - no inventar datos que el usuario no mencione
+> - devolver null cuando un valor no esté presente
+> - generar siempre un JSON válido
+> - mantener el formato consistente para que el backend pueda procesarlo
 
----
+### Fase 3: Transformación del formulario en interfaz tipo chat
 
-### Fase 3: Configuración de la Suite de Testing Fullstack
-
-**Técnica utilizada:** Role Prompting + Structured Prompting + Code Generation  
-**Objetivo:** Implementar la infraestructura de pruebas para backend y frontend, de modo que endpoints y componentes se puedan testear fácilmente en Replit.
+**Técnica utilizada:** Role Prompting + Code Generation
+**Objetivo:** Sustituir el formulario tradicional por una experiencia de chat, respetando la lógica de negocio y los servicios ya existentes.
 
 **Prompt utilizado:**
 
-> [Rol del modelo]:
-> Eres un ingeniero senior de QA y testing automation experto en pruebas para aplicaciones fullstack con Python (FastAPI) y Next.js. Tienes amplia experiencia configurando suites de testing para monorepos y entornos de desarrollo en Replit.
+> [Rol del modelo]: Eres un arquitecto de software especializado en integración de funcionalidades dentro de sistemas existentes.
 >
-> [Tarea]:
-> Tu objetivo es **generar y ajustar toda la infraestructura de testing del proyecto** para una aplicación fullstack que corre completamente en Replit.
+> [Tarea]: Tu objetivo es integrar el resultado del análisis de lenguaje natural con la lógica actual del backend que calcula emisiones. Debes reutilizar los servicios o funciones que ya existen para realizar el cálculo.
 >
-> Debes crear los **tests necesarios para frontend y backend**, configurar las herramientas de testing, y asegurar que las pruebas puedan ejecutarse fácilmente en el entorno del proyecto.
+> [Formato]: Devuelve:
 >
-> El proyecto ya tiene esta arquitectura base: frontend (app, components, hooks, services, styles, tests), backend (app con routes, services, models, schemas; tests), scripts, .replit, replit.nix, README.md.
+> 1. el flujo lógico completo
+> 2. las modificaciones necesarias en el endpoint que recibe el mensaje del chat
+> 3. cómo convertir el JSON extraído del mensaje en el formato que espera la lógica actual de cálculo
 >
-> Debes **analizar la arquitectura existente y generar la suite completa de pruebas** acorde a ella.
+> [Ejemplo(s)]:
 >
-> [Formato]:
-> Devuelve la respuesta en formato de **estructura de proyecto + archivos completos**. Primero muestra la estructura de carpetas de testing actualizada. Luego cada archivo con contenido completo. No omitas archivos de configuración.
+> Mensaje del usuario:
+> "Hoy usamos 5 camionetas y 200kWh de electricidad"
 >
-> [Testing Backend]:
+> Datos extraídos:
+> {
+> "vehicles": 5,
+> "electricity_kwh": 200
+> }
 >
-> Configura testing del backend Python usando: pytest, httpx para testing de endpoints, pytest-asyncio para endpoints async.
+> Resultado del sistema:
+> "Con base en tu actividad, tu negocio generó aproximadamente 48 kg de CO₂."
 >
-> Crear: backend/tests/conftest.py, test_health.py, test_example_endpoint.py. Los tests deben levantar la app FastAPI en modo testing, verificar endpoints HTTP, validar status codes y respuestas JSON. Ejemplo: GET /api/health → status_code = 200, response.json() = {"status": "ok"}.
+> [Instrucciones extra]:
+> Asegúrate de:
 >
-> [Testing Frontend]:
->
-> Configura testing del frontend Next.js usando Jest y React Testing Library. Crear: frontend/tests/setupTests.ts, HomePage.test.tsx, apiService.test.ts. Verificar renderizado de componentes, comportamiento de hooks, consumo de API y manejo de estados básicos. Usar **mocks cuando el frontend consuma APIs**.
->
-> [Configuración requerida]:
->
-> Frontend: jest.config.js, scripts de testing en package.json. Backend: pytest.ini, dependencias adicionales en requirements.txt. Scripts: Frontend `npm run test`, Backend `pytest`.
->
-> [Instrucciones extra]: Tests funcionales y ejecutables, imports completos, buenas prácticas, sin pseudocódigo, estructura clara; que los tests puedan ejecutarse en Replit sin configuraciones externas.
-
----
+> - reutilizar la lógica actual del backend
+> - no duplicar funcionalidades que ya existen
+> - mantener el flujo simple y fácil de mantener
 
 ## Contenido del archivo .cursorrules
 
 A continuación se incluye el contenido completo del archivo `.cursorrules` del proyecto, utilizado para guiar el comportamiento del asistente en Cursor y alinearlo con la arquitectura EcoTrack/EcoStream y la filosofía Vibe Coding.
 
-```markdown
+````markdown
 # EcoStream Predictive Analytics — Cursor Rules
 
 You are an expert full-stack developer acting as an **orchestrator**. You don't just write code; you build a frictionless experience from **Text Input** to **CO2 Result**.
@@ -386,15 +287,19 @@ A simple MVP where:
 
 Define interfaces that match EcoStream's JSON responses exactly. Example pattern:
 
-    // types/ecostream.ts — mirrors Python response
-    export interface FootprintResponse {
-      activity: string;
-      co2_kg: number;
-      unit?: string;
-    }
-    export interface EcoStreamError {
-      detail: string;
-    }
+```ts
+// types/ecostream.ts — mirrors Python response
+export interface FootprintResponse {
+  activity: string;
+  co2_kg: number;
+  unit?: string;
+}
+export interface EcoStreamError {
+  detail: string;
+}
+```
+
+```
 
 When the backend schema changes, update these interfaces first — never guess response shapes.
 
@@ -422,25 +327,7 @@ You orchestrate the full stack. You ensure EcoTrack calls EcoStream correctly, h
 
 **"Code for clarity, design for impact."**
 ```
-
----
-
-## Capturas de pantalla
-
-Espacios reservados para capturas. Sustituir por las imágenes correspondientes en la carpeta `img/`.
-
-## Capturas de pantalla
-
-Espacios reservados para capturas. Sustituir por las imágenes correspondientes en la carpeta `img/`.
-
-| #   | Descripción                                      | Archivo            |
-| --- | ------------------------------------------------ | ------------------ |
-| 1   | VibeCoding con cursor en la aplicación           | `img/captura1.png` |
-| 2   | Replit en ejecución o configuración del proyecto | `img/captura2.png` |
-
-![Captura 1 — VibeCoding con cursor](img/captura1.png)
-
-![Captura 2 — Replit / entorno](img/captura2.png)
+````
 
 ---
 
@@ -448,14 +335,13 @@ Espacios reservados para capturas. Sustituir por las imágenes correspondientes 
 
 ### Estructura del monorepo
 
-```
+```text
 project-root/
 ├── frontend/          # Next.js (puerto 3000)
 ├── backend/           # FastAPI (puerto 8000)
 ├── scripts/
 │   └── start.sh       # Arranque backend + frontend
 ├── docs/              # frontend-mvp-architecture.md, etc.
-├── img/               # Capturas de pantalla
 ├── .replit
 ├── replit.nix
 └── README.md
@@ -464,8 +350,10 @@ project-root/
 ### Comandos útiles
 
 - **Replit:** Run ejecuta `scripts/start.sh` (backend + frontend).
-- **Backend (local):** `cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8000`
-- **Frontend (local):** `cd frontend && npm install && npm run dev`
+- **Backend (local):**  
+  `cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload --port 8000`
+- **Frontend (local):**  
+  `cd frontend && npm install && npm run dev`
 - **Tests backend:** `cd backend && pytest`
 - **Tests frontend:** `cd frontend && npm run test`
 
@@ -474,7 +362,8 @@ project-root/
 - `GET /api/health` → `{ "status": "ok" }`
 - `GET /api/example` → mensaje de ejemplo
 - `POST /api/resultado-huella` → body: `{ tipo_vehiculo, distancia_km, peso_toneladas, factor_eficiencia }` → respuesta: `{ total_co2e_kg, total_co2e_ton, _links }`
+- `POST /api/chat-resultado-huella` → body: `{ message }` → respuesta: `{ total_co2e_kg, total_co2e_ton, _links, parsed_activity, result_text }`
 
 ---
 
-_Documento generado para la entrega del Sprint 3 — EcoTrack / EcoStream. Metodología Vibe Coding._
+_Documento generado para la entrega del Sprint 4 — EcoTrack / EcoStream. Metodología Vibe Coding._
